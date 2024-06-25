@@ -32,6 +32,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -147,9 +148,9 @@
     <ClInclude Include="enums.h" />
     <ClInclude Include="keyboard.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="menu.h" />
     <ClInclude Include="nativeCaller.h" />
     <ClInclude Include="natives.h" />
-    <ClInclude Include="scriptmenu.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="script.h" />
     <ClInclude Include="types.h" />
@@ -170,7 +171,6 @@
       </PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="keyboard.cpp" />
-    <ClCompile Include="scriptmenu.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
