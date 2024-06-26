@@ -71,21 +71,19 @@ void draw_menu_line(std::string caption, float lineWidth, float lineHeight, floa
 
 	// text upper part
 	HUD::SET_TEXT_FONT(font);
-	HUD::SET_TEXT_SCALE(0.0, text_scale);
+	HUD::SET_TEXT_SCALE(0.3, text_scale);
 	HUD::SET_TEXT_COLOUR(text_col[0], text_col[1], text_col[2], text_col[3]);
 	HUD::SET_TEXT_CENTRE(0);
 	HUD::SET_TEXT_DROPSHADOW(0, 0, 0, 0, 0);
 	HUD::SET_TEXT_EDGE(0, 0, 0, 0, 0);
-	//HUD::DISPLAY_TEXT(textLeftScaled, (((lineTopScaled + 0.00278f) + lineHeightScaled) - 0.005f), (LPSTR)caption.c_str());
-	
-
 	//HUD::_SET_TEXT_ENTRY("STRING");
 	//HUD::_ADD_TEXT_COMPONENT_STRING((LPSTR)caption.c_str());
 	//HUD::_DRAW_TEXT(textLeftScaled, (((lineTopScaled + 0.00278f) + lineHeightScaled) - 0.005f));
+	HUD::DISPLAY_TEXT_WITH_LITERAL_STRING(textLeftScaled, (((lineTopScaled + 0.00278f) + lineHeightScaled) - 0.005f), "STRING", (LPSTR)caption.c_str());
 
 	// text lower part
 	HUD::SET_TEXT_FONT(font);
-	HUD::SET_TEXT_SCALE(0.0, text_scale);
+	HUD::SET_TEXT_SCALE(0.3, text_scale);
 	HUD::SET_TEXT_COLOUR(text_col[0], text_col[1], text_col[2], text_col[3]);
 	HUD::SET_TEXT_CENTRE(0);
 	HUD::SET_TEXT_DROPSHADOW(0, 0, 0, 0, 0);
@@ -93,12 +91,14 @@ void draw_menu_line(std::string caption, float lineWidth, float lineHeight, floa
 	//HUD::_SET_TEXT_GXT_ENTRY("STRING");
 	//HUD::_ADD_TEXT_COMPONENT_STRING((LPSTR)caption.c_str());
 	//int num25 = UI::_0x9040DFB09BE75706(textLeftScaled, (((lineTopScaled + 0.00278f) + lineHeightScaled) - 0.005f));
+	HUD::DISPLAY_TEXT_WITH_LITERAL_STRING(textLeftScaled, (((lineTopScaled + 0.00278f) + lineHeightScaled) - 0.005f), "STRING", (LPSTR)caption.c_str());
 
 	// rect
 	//draw_rect(lineLeftScaled, lineTopScaled + (0.00278f),
 		//lineWidthScaled, ((((float)(num25)*UI::_0xDB88A37483346780(text_scale, 0)) + (lineHeightScaled * 2.0f)) + 0.005f),
 		//rect_col[0], rect_col[1], rect_col[2], rect_col[3]);
-	draw_rect(lineLeftScaled, lineTopScaled + (0.00278f), lineWidthScaled, (lineHeightScaled * 2.0f), rect_col[0], rect_col[1], rect_col[2], rect_col[3]);
+	draw_rect(lineLeftScaled, lineTopScaled + (0.00278f),
+		lineWidthScaled, 0.05f, rect_col[0], rect_col[1], rect_col[2], rect_col[3]);
 }
 
 bool trainer_switch_pressed()
@@ -139,16 +139,16 @@ void update_status_text()
 		if (statusTextGxtEntry)
 		{
 			//UI::_SET_TEXT_ENTRY((char*)statusText.c_str());
-			HUD::DISPLAY_TEXT(0.5, 0.5, (char*)statusText.c_str());
+			HUD::DISPLAY_TEXT_WITH_LITERAL_STRING(0.5, 0.5, "STRING", (char*)statusText.c_str());
 		}
 		else
 		{
 			//UI::_SET_TEXT_ENTRY("STRING");
 			//UI::_ADD_TEXT_COMPONENT_STRING((char*)statusText.c_str());
-			HUD::DISPLAY_TEXT(0.5, 0.5, (char*)statusText.c_str());
+			//HUD::DISPLAY_TEXT_WITH_LITERAL_STRING(0.5, 0.5, "STRING", (char*)statusText.c_str());
 		}
 		//UI::_DRAW_TEXT(0.5, 0.5);
-		HUD::DISPLAY_TEXT(0.5, 0.5,"update status text");
+		//HUD::DISPLAY_TEXT_WITH_LITERAL_STRING(0.5, 0.5, "STRING", (char*)statusText.c_str());
 	}
 }
 
@@ -159,40 +159,66 @@ void set_status_text(std::string str, DWORD time = 2500, bool isGxtEntry = false
 	statusTextGxtEntry = isGxtEntry;
 }
 
+//features
+bool featurePlayerInvincible = false;
+bool featurePlayerInvincibleUpdated = false;
+
 std::string line_as_str(std::string text, bool* pState)
 {
 	while (text.size() < 18) text += " ";
 	return text + (pState ? (*pState ? " [ON]" : " [OFF]") : "");
 }
 
-int activeLineIndexPlayer = 0;
-void process_player_menu()
+void update_features()
 {
-	const float lineWidth = 250.0;
-	const int lineCount = 15;
+	update_status_text();
 
-	std::string caption = "PLAYER  OPTIONS";
+	// wait until player is ready, basically to prevent using the trainer while player is dead or arrested
+	//while (PLAYER::IS_PLAYER_DEAD(PLAYER::GET_PLAYER_ID()), TRUE)
+		//scriptWait(0);
 
-	static struct {
-		LPCSTR		text;
+	// common variables
+	Player player = PLAYER::GET_PLAYER_ID();
+	Ped playerPed = PLAYER::GET_PLAYER_PED(player);
+	BOOL bPlayerExists = PLAYER::DOES_MAIN_PLAYER_EXIST();
+
+	// player invincible
+	if (featurePlayerInvincibleUpdated)
+	{
+		if (bPlayerExists && !featurePlayerInvincible)
+			PLAYER::SET_PLAYER_INVINCIBLE(player, FALSE);
+		featurePlayerInvincibleUpdated = false;
+	}
+	if (featurePlayerInvincible)
+	{
+		if (bPlayerExists)
+			PLAYER::SET_PLAYER_INVINCIBLE(player, TRUE);
+	}
+
+}
+
+int activeLineIndexMain = 0;
+void process_main_menu()
+{
+	const float lineWidth = 300.0;
+	const int lineCount = 7;
+
+	std::string caption = "MP3 BASIC MOD";
+
+	static struct 
+	{
+		LPCSTR text;
 		bool* pState;
 		bool* pUpdated;
-	} lines[lineCount] = {
-		{"SKIN CHANGER", NULL, NULL},
-		{"TELEPORT", NULL, NULL},
-		{"FIX PLAYER", NULL, NULL},
-		{"RESET SKIN", NULL, NULL},
-		{"ADD CASH", NULL, NULL},
-		{"WANTED UP", NULL, NULL},
-		{"WANTED DOWN", NULL, NULL},
-		//{"NEVER WANTED", &featurePlayerNeverWanted, NULL},
-		//{"INVINCIBLE", &featurePlayerInvincible, &featurePlayerInvincibleUpdated},
-		//{"POLICE IGNORED", &featurePlayerIgnored, &featurePlayerIgnoredUpdated},
-		//{"UNLIM ABILITY", &featurePlayerUnlimitedAbility, NULL},
-		//{"NOISELESS", &featurePlayerNoNoise, &featurePlayerNoNoiseUpdated},
-		//{"FAST SWIM", &featurePlayerFastSwim, &featurePlayerFastSwimUpdated},
-		//{"FAST RUN", &featurePlayerFastRun, &featurePlayerFastRunUpdated},
-		//{"SUPER JUMP", &featurePlayerSuperJump, NULL}
+	}
+	lines[lineCount] = {
+		{"INVINCIBLE", &featurePlayerInvincible, &featurePlayerInvincibleUpdated},
+		{"WEAPON", NULL, NULL},
+		{"VEHICLE", NULL, NULL },
+		{"WORLD", NULL, NULL},
+		{"TIME", NULL, NULL},
+		{"WEATHER", NULL, NULL},
+		{"MISC", NULL, NULL}
 	};
 
 	DWORD waitTime = 150;
@@ -205,98 +231,14 @@ void process_player_menu()
 			// draw menu
 			draw_menu_line(caption, lineWidth, 15.0, 18.0, 0.0, 5.0, false, true);
 			for (int i = 0; i < lineCount; i++)
-				if (i != activeLineIndexPlayer)
-					draw_menu_line(line_as_str(lines[i].text, lines[i].pState),
-						lineWidth, 9.0, 60.0 + i * 36.0, 0.0, 9.0, false, false);
-			draw_menu_line(line_as_str(lines[activeLineIndexPlayer].text, lines[activeLineIndexPlayer].pState),
-				lineWidth + 1.0, 11.0, 56.0 + activeLineIndexPlayer * 36.0, 0.0, 7.0, true, false);
-
-			//update_features();
-			scriptWait(0);
-		} while (GetTickCount() < maxTickCount);
-		waitTime = 0;
-
-		// process buttons
-		bool bSelect, bBack, bUp, bDown;
-		get_button_state(&bSelect, &bBack, &bUp, &bDown, NULL, NULL);
-		if (bSelect)
-		{
-			menu_beep();
-
-			switch (activeLineIndexPlayer)
-			{
-				
-			default:
-				if (lines[activeLineIndexPlayer].pState)
-					*lines[activeLineIndexPlayer].pState = !(*lines[activeLineIndexPlayer].pState);
-				if (lines[activeLineIndexPlayer].pUpdated)
-					*lines[activeLineIndexPlayer].pUpdated = true;
-			}
-			waitTime = 200;
-		}
-		else
-			if (bBack || trainer_switch_pressed())
-			{
-				menu_beep();
-				break;
-			}
-			else
-				if (bUp)
-				{
-					menu_beep();
-					if (activeLineIndexPlayer == 0)
-						activeLineIndexPlayer = lineCount;
-					activeLineIndexPlayer--;
-					waitTime = 150;
-				}
-				else
-					if (bDown)
-					{
-						menu_beep();
-						activeLineIndexPlayer++;
-						if (activeLineIndexPlayer == lineCount)
-							activeLineIndexPlayer = 0;
-						waitTime = 150;
-					}
-	}
-}
-
-int activeLineIndexMain = 0;
-void process_main_menu()
-{
-	const float lineWidth = 500.0;
-	const int lineCount = 7;
-
-	std::string caption = "NATIVE  TRAINER  (AB)";
-
-	static LPCSTR lineCaption[lineCount] = {
-		"PLAYER",
-		"WEAPON",
-		"VEHICLE",
-		"WORLD",
-		"TIME",
-		"WEATHER",
-		"MISC"
-	};
-
-	DWORD waitTime = 150;
-	while (true)
-	{
-		// timed menu draw, used for pause after active line switch
-		DWORD maxTickCount = GetTickCount() + waitTime;
-		do
-		{
-			// draw menu
-			draw_menu_line(caption, lineWidth, 100.0, 18.0, 0.0, 5.0, false, true);
-			HUD::DISPLAY_TEXT_WITH_LITERAL_STRING(0.5f, 0.5f, "STRING", "~r~By jedijosh920 & Unknown Modder");
-			for (int i = 0; i < lineCount; i++)
 			{
 				if (i != activeLineIndexMain)
 				{
-					draw_menu_line(lineCaption[i], lineWidth, 9.0, 60.0 + i * 36.0, 0.0, 9.0, false, false);
+					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), lineWidth, 9.0, 60.0 + i * 36.0, 0.0, 9.0, false, false);
 				}
 			}
-			draw_menu_line(lineCaption[activeLineIndexMain], lineWidth + 1.0, 11.0, 56.0 + activeLineIndexMain * 36.0, 0.0, 7.0, true, false);
+			draw_menu_line(line_as_str(lines[activeLineIndexMain].text, lines[activeLineIndexMain].pState), lineWidth + 1.0, 11.0, 56.0 + activeLineIndexMain * 36.0, 0.0, 7.0, true, false);
+			update_features();
 			scriptWait(0);
 		} 
 		while (GetTickCount() < maxTickCount);
@@ -311,7 +253,12 @@ void process_main_menu()
 			switch (activeLineIndexMain)
 			{
 			case 0:
-				process_player_menu();
+				featurePlayerInvincible = !featurePlayerInvincible;
+				if (featurePlayerInvincible)
+				{
+					PLAYER::SET_PLAYER_INVINCIBLE(PLAYER::GET_PLAYER_ID(), true);
+					PLAYER::ADD_PAYNEKILLER(1);
+				}
 				break;
 			case 1:
 				//process_weapon_menu();
@@ -331,6 +278,12 @@ void process_main_menu()
 			case 6:
 				//process_misc_menu();
 				break;
+			default:
+				if (lines[activeLineIndexMain].pState)
+					*lines[activeLineIndexMain].pState = !(*lines[activeLineIndexMain].pState);
+				if (lines[activeLineIndexMain].pUpdated)
+					*lines[activeLineIndexMain].pUpdated = true;
+				set_status_text(lines[activeLineIndexMain].text);
 			}
 			waitTime = 200;
 		}
@@ -372,11 +325,25 @@ void process_menu_menu()
 		{
 			// draw menu
 			DrawMenuBackground();
-			DrawMenuHighlighter();
-			AddTitle("title", 1);
-			AddOption("abcd", 0, NULL);
+			InitMenu(4);
+
+			AddOption("option 1", 0, NullFunc);
+			AddOption("option 2", 1, NullFunc);
+			AddOption("option 3", 2, NullFunc);
+			AddOption("option 4", 3, NullFunc);
+			
+
+			HUD::SET_TEXT_FONT(1);
+			HUD::SET_TEXT_SCALE(0.25f, 0.6f);
+			HUD::SET_TEXT_DROPSHADOW(0, 0, 0, 0, 0);
+			HUD::SET_TEXT_COLOUR(255, 255, 255, 255);
+
+			HUD::DISPLAY_TEXT(0.3f, 0.3f, "abcdefg");
+			HUD::DISPLAY_TEXT_WITH_LITERAL_STRING(0.2f,0.2f, "STRING", "text 1");
+			HUD::DISPLAY_TEXT_WITH_LITERAL_STRING(0.5f, 0.5f, "STRING", "text 1");
 
 
+			//
 			scriptWait(0);
 		} while (GetTickCount() < maxTickCount);
 		waitTime = 0;
@@ -396,11 +363,29 @@ void main()
 		{
 			menu_beep();
 			process_main_menu();
+			//process_menu_menu();
+			//Explode();
+			//AddWeapons();
+			//WantedLevel();
+			//SpawnVehicle();
+			//SpawnRandomNPC();
+			//TeleportPlayer();
+			//InvinciblePlayer();
+			//SuperJump();
+			//SuperSpeed();
+			//vehicleSpeedBoost();
+			//AddMoney();
 		}
 		if (IsKeyDown(VK_F8)) 
 		{
 			menu_beep();
 			PLAYER::SET_PLAYER_INVINCIBLE(PLAYER::GET_PLAYER_ID(), true);
+		}
+		if (IsKeyDown(VK_F9))
+		{
+			HUD::PRINT("print", 100, 100);
+			HUD::PRINT_HELP("print help");
+			HUD::PRINT_NOW("print now", 100, 100);
 		}
 		//update_features();
 		scriptWait(0);
