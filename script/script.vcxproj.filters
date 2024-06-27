@@ -39,9 +39,6 @@
     <ClInclude Include="script.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="menu.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

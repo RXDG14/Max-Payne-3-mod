@@ -148,7 +148,6 @@
     <ClInclude Include="enums.h" />
     <ClInclude Include="keyboard.h" />
     <ClInclude Include="main.h" />
-    <ClInclude Include="menu.h" />
     <ClInclude Include="nativeCaller.h" />
     <ClInclude Include="natives.h" />
     <ClInclude Include="stdafx.h" />

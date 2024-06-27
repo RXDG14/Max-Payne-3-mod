@@ -4,7 +4,6 @@
 #include "main.h"
 
 #include "script.h"
-#include "menu.h"
 
 #include <string>
 #include <ctime>
@@ -160,8 +159,14 @@ void set_status_text(std::string str, DWORD time = 2500, bool isGxtEntry = false
 }
 
 //features
-bool featurePlayerInvincible = false;
-bool featurePlayerInvincibleUpdated = false;
+bool PlayerInvincible = false;
+bool PlayerInvincibleUpdated = false;
+bool SuperSpeed = false;
+bool SuperSpeedUpdated = false;
+bool NoReload = false;
+bool NoReloadUpdated = false;
+bool UnlimitedBulletTime = false;
+bool ExplosiveBullets = false;
 
 std::string line_as_str(std::string text, bool* pState)
 {
@@ -183,7 +188,7 @@ void update_features()
 	BOOL bPlayerExists = PLAYER::DOES_MAIN_PLAYER_EXIST();
 
 	// player invincible
-	if (featurePlayerInvincibleUpdated)
+	/*if (featurePlayerInvincibleUpdated)
 	{
 		if (bPlayerExists && !featurePlayerInvincible)
 			PLAYER::SET_PLAYER_INVINCIBLE(player, FALSE);
@@ -193,7 +198,7 @@ void update_features()
 	{
 		if (bPlayerExists)
 			PLAYER::SET_PLAYER_INVINCIBLE(player, TRUE);
-	}
+	}*/
 
 }
 
@@ -212,12 +217,12 @@ void process_main_menu()
 		bool* pUpdated;
 	}
 	lines[lineCount] = {
-		{"INVINCIBLE", &featurePlayerInvincible, &featurePlayerInvincibleUpdated},
-		{"WEAPON", NULL, NULL},
-		{"VEHICLE", NULL, NULL },
-		{"WORLD", NULL, NULL},
-		{"TIME", NULL, NULL},
-		{"WEATHER", NULL, NULL},
+		{"INVINCIBLE", &PlayerInvincible, &PlayerInvincibleUpdated},
+		{"SUPER SPEED", &SuperSpeed, &SuperSpeedUpdated},
+		{"GET WEAPONS", NULL, NULL },
+		{"NO RELOAD", &NoReload, NULL},
+		{"UNLIMITED BULLET TIME", &UnlimitedBulletTime, NULL},
+		{"EXPLOSIVE BULLETS", &ExplosiveBullets, NULL},
 		{"MISC", NULL, NULL}
 	};
 
@@ -238,7 +243,8 @@ void process_main_menu()
 				}
 			}
 			draw_menu_line(line_as_str(lines[activeLineIndexMain].text, lines[activeLineIndexMain].pState), lineWidth + 1.0, 11.0, 56.0 + activeLineIndexMain * 36.0, 0.0, 7.0, true, false);
-			update_features();
+			//update_features();
+			update_status_text();
 			scriptWait(0);
 		} 
 		while (GetTickCount() < maxTickCount);
@@ -250,30 +256,53 @@ void process_main_menu()
 		if (bSelect)
 		{
 			menu_beep();
+
+			Player player = PLAYER::GET_PLAYER_ID();
+			Ped playerPed = PLAYER::GET_PLAYER_PED(player);
+
 			switch (activeLineIndexMain)
 			{
 			case 0:
-				featurePlayerInvincible = !featurePlayerInvincible;
-				if (featurePlayerInvincible)
+				//INVINCIBLE PLAYER
+				PlayerInvincible = !PlayerInvincible;
+				if (PlayerInvincible)
 				{
 					PLAYER::SET_PLAYER_INVINCIBLE(PLAYER::GET_PLAYER_ID(), true);
 					PLAYER::ADD_PAYNEKILLER(1);
 				}
+				else 
+				{
+					PLAYER::SET_PLAYER_INVINCIBLE(PLAYER::GET_PLAYER_ID(), false);
+				}
 				break;
 			case 1:
-				//process_weapon_menu();
+				// SUPER SPEED
+				SuperSpeed = !SuperSpeed;
 				break;
 			case 2:
-				//process_veh_menu();
+				// ADD WEAPONS - weapon limit is only 3 guns max i guess
+				WEAPON::GIVE_WEAPON_TO_PED(playerPed, WEAPON_PISTOL_DEAGLE, 100, 1);
+				WEAPON::GIVE_WEAPON_TO_PED(playerPed, WEAPON_RIFLE_AK47, 100, 1);
 				break;
 			case 3:
-				//process_world_menu();
+				// NO RELOAD
+				NoReload = !NoReload;
+				if (NoReload)
+				{
+					WEAPON::SET_PED_CONSUMING_AMMO(playerPed, false);
+				}
+				else 
+				{
+					WEAPON::SET_PED_CONSUMING_AMMO(playerPed, true);
+				}
 				break;
 			case 4:
-				//process_time_menu();
+				// UNLIMITED BULLET TIME
+				UnlimitedBulletTime = !UnlimitedBulletTime;
 				break;
 			case 5:
-				//process_weather_menu();
+				// EXPLOSIVE BULLETS
+				ExplosiveBullets = !ExplosiveBullets;
 				break;
 			case 6:
 				//process_misc_menu();
@@ -314,47 +343,6 @@ void process_main_menu()
 	}
 }
 
-void process_menu_menu()
-{
-	DWORD waitTime = 150;
-	while (true)
-	{
-		// timed menu draw, used for pause after active line switch
-		DWORD maxTickCount = GetTickCount() + waitTime;
-		do
-		{
-			// draw menu
-			DrawMenuBackground();
-			InitMenu(4);
-
-			AddOption("option 1", 0, NullFunc);
-			AddOption("option 2", 1, NullFunc);
-			AddOption("option 3", 2, NullFunc);
-			AddOption("option 4", 3, NullFunc);
-			
-
-			HUD::SET_TEXT_FONT(1);
-			HUD::SET_TEXT_SCALE(0.25f, 0.6f);
-			HUD::SET_TEXT_DROPSHADOW(0, 0, 0, 0, 0);
-			HUD::SET_TEXT_COLOUR(255, 255, 255, 255);
-
-			HUD::DISPLAY_TEXT(0.3f, 0.3f, "abcdefg");
-			HUD::DISPLAY_TEXT_WITH_LITERAL_STRING(0.2f,0.2f, "STRING", "text 1");
-			HUD::DISPLAY_TEXT_WITH_LITERAL_STRING(0.5f, 0.5f, "STRING", "text 1");
-
-
-			//
-			scriptWait(0);
-		} while (GetTickCount() < maxTickCount);
-		waitTime = 0;
-		if (trainer_switch_pressed())
-		{
-			menu_beep();
-			break;
-		}
-	}
-}
-
 void main()
 {
 	while (true)
@@ -363,31 +351,44 @@ void main()
 		{
 			menu_beep();
 			process_main_menu();
-			//process_menu_menu();
 			//Explode();
-			//AddWeapons();
-			//WantedLevel();
-			//SpawnVehicle();
-			//SpawnRandomNPC();
-			//TeleportPlayer();
-			//InvinciblePlayer();
-			//SuperJump();
-			//SuperSpeed();
-			//vehicleSpeedBoost();
-			//AddMoney();
 		}
-		if (IsKeyDown(VK_F8)) 
+		// SUPER SPEED
+		if (IsKeyDown(VK_SHIFT) && SuperSpeed)
 		{
-			menu_beep();
-			PLAYER::SET_PLAYER_INVINCIBLE(PLAYER::GET_PLAYER_ID(), true);
+			Ped playerPed = PLAYER::GET_PLAYER_PED(PLAYER::GET_PLAYER_ID());
+			PLAYER::DEACTIVATE_BULLET_TIME(true, true);
+			PED::APPLY_FORCE_TO_PED(playerPed, true, 0, 5, 0, 0, 0, 0, true, true, true, true);
 		}
-		if (IsKeyDown(VK_F9))
+		// UNLIMITED BULLET TIME
+		if (UnlimitedBulletTime)
 		{
-			HUD::PRINT("print", 100, 100);
-			HUD::PRINT_HELP("print help");
-			HUD::PRINT_NOW("print now", 100, 100);
+			PLAYER::SET_ADRENALINE_AMT(9999);
 		}
-		//update_features();
+		// EXPLOSIVE BULLETS
+		if (ExplosiveBullets)
+		{
+			Player player = PLAYER::GET_PLAYER_ID();
+			Ped playerPed = PLAYER::GET_PLAYER_PED(player);
+			
+			if (PED::IS_PED_SHOOTING(playerPed))
+			{
+				Vector3 coords = PED::GET_PED_COORDS(playerPed);
+				
+				//Vector3 coords = WEAPON::impact
+				FIRE::ADD_EXPLOSION(coords.x, coords.y, coords.z, EXP_TAG_GRENADE, 1, 1, 0, 1);
+			}
+			/*if (PED::IS_PED_SHOOTING(playerPed))
+			{
+				Vector3 coords;
+				WEAPON::GET_PED_LAST_WEAPON_IMPACT_COORD(playerPed, &coords);
+				FIRE::ADD_EXPLOSION(coords.x, coords.y, coords.z, EXP_TAG_GRENADE, 1, 1, 0, 1);
+				/*if (WEAPON::GET_PED_LAST_WEAPON_IMPACT_COORD(playerPed, &coords))
+				{
+					FIRE::ADD_EXPLOSION(coords.x, coords.y, coords.z, EXP_TAG_GRENADE, 1, 1, 0, 1);
+				}*
+			}*/
+		}
 		scriptWait(0);
 	}
 }
