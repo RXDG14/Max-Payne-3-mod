@@ -1,5 +1,3 @@
-// simple example
-
 #include "stdafx.h"
 #include "main.h"
 
@@ -41,7 +39,7 @@ void draw_menu_line(std::string caption, float lineWidth, float lineHeight, floa
 		rect_col[1] = 242;
 		rect_col[2] = 216;
 
-		if (rescaleText) text_scale = 0.40;
+		if (rescaleText) text_scale = 0.4;
 	}
 
 	if (title)
@@ -50,7 +48,7 @@ void draw_menu_line(std::string caption, float lineWidth, float lineHeight, floa
 		rect_col[1] = 0;
 		rect_col[2] = 0;
 
-		if (rescaleText) text_scale = 0.50;
+		if (rescaleText) text_scale = 0.45;
 		font = 1;
 	}
 
@@ -75,9 +73,6 @@ void draw_menu_line(std::string caption, float lineWidth, float lineHeight, floa
 	HUD::SET_TEXT_CENTRE(0);
 	HUD::SET_TEXT_DROPSHADOW(0, 0, 0, 0, 0);
 	HUD::SET_TEXT_EDGE(0, 0, 0, 0, 0);
-	//HUD::_SET_TEXT_ENTRY("STRING");
-	//HUD::_ADD_TEXT_COMPONENT_STRING((LPSTR)caption.c_str());
-	//HUD::_DRAW_TEXT(textLeftScaled, (((lineTopScaled + 0.00278f) + lineHeightScaled) - 0.005f));
 	HUD::DISPLAY_TEXT_WITH_LITERAL_STRING(textLeftScaled, (((lineTopScaled + 0.00278f) + lineHeightScaled) - 0.005f), "STRING", (LPSTR)caption.c_str());
 
 	// text lower part
@@ -87,17 +82,11 @@ void draw_menu_line(std::string caption, float lineWidth, float lineHeight, floa
 	HUD::SET_TEXT_CENTRE(0);
 	HUD::SET_TEXT_DROPSHADOW(0, 0, 0, 0, 0);
 	HUD::SET_TEXT_EDGE(0, 0, 0, 0, 0);
-	//HUD::_SET_TEXT_GXT_ENTRY("STRING");
-	//HUD::_ADD_TEXT_COMPONENT_STRING((LPSTR)caption.c_str());
-	//int num25 = UI::_0x9040DFB09BE75706(textLeftScaled, (((lineTopScaled + 0.00278f) + lineHeightScaled) - 0.005f));
 	HUD::DISPLAY_TEXT_WITH_LITERAL_STRING(textLeftScaled, (((lineTopScaled + 0.00278f) + lineHeightScaled) - 0.005f), "STRING", (LPSTR)caption.c_str());
 
 	// rect
-	//draw_rect(lineLeftScaled, lineTopScaled + (0.00278f),
-		//lineWidthScaled, ((((float)(num25)*UI::_0xDB88A37483346780(text_scale, 0)) + (lineHeightScaled * 2.0f)) + 0.005f),
-		//rect_col[0], rect_col[1], rect_col[2], rect_col[3]);
 	draw_rect(lineLeftScaled, lineTopScaled + (0.00278f),
-		lineWidthScaled, 0.05f, rect_col[0], rect_col[1], rect_col[2], rect_col[3]);
+		lineWidthScaled, 0.03f, rect_col[0], rect_col[1], rect_col[2], rect_col[3]);
 }
 
 bool trainer_switch_pressed()
@@ -135,19 +124,11 @@ void update_status_text()
 		HUD::SET_TEXT_CENTRE(1);
 		HUD::SET_TEXT_DROPSHADOW(0, 0, 0, 0, 0);
 		HUD::SET_TEXT_EDGE(1, 0, 0, 0, 205);
+		HUD::SET_TEXT_RIGHT_JUSTIFY(true);
 		if (statusTextGxtEntry)
 		{
-			//UI::_SET_TEXT_ENTRY((char*)statusText.c_str());
 			HUD::DISPLAY_TEXT_WITH_LITERAL_STRING(0.5, 0.5, "STRING", (char*)statusText.c_str());
 		}
-		else
-		{
-			//UI::_SET_TEXT_ENTRY("STRING");
-			//UI::_ADD_TEXT_COMPONENT_STRING((char*)statusText.c_str());
-			//HUD::DISPLAY_TEXT_WITH_LITERAL_STRING(0.5, 0.5, "STRING", (char*)statusText.c_str());
-		}
-		//UI::_DRAW_TEXT(0.5, 0.5);
-		//HUD::DISPLAY_TEXT_WITH_LITERAL_STRING(0.5, 0.5, "STRING", (char*)statusText.c_str());
 	}
 }
 
@@ -174,39 +155,11 @@ std::string line_as_str(std::string text, bool* pState)
 	return text + (pState ? (*pState ? " [ON]" : " [OFF]") : "");
 }
 
-void update_features()
-{
-	update_status_text();
-
-	// wait until player is ready, basically to prevent using the trainer while player is dead or arrested
-	//while (PLAYER::IS_PLAYER_DEAD(PLAYER::GET_PLAYER_ID()), TRUE)
-		//scriptWait(0);
-
-	// common variables
-	Player player = PLAYER::GET_PLAYER_ID();
-	Ped playerPed = PLAYER::GET_PLAYER_PED(player);
-	BOOL bPlayerExists = PLAYER::DOES_MAIN_PLAYER_EXIST();
-
-	// player invincible
-	/*if (featurePlayerInvincibleUpdated)
-	{
-		if (bPlayerExists && !featurePlayerInvincible)
-			PLAYER::SET_PLAYER_INVINCIBLE(player, FALSE);
-		featurePlayerInvincibleUpdated = false;
-	}
-	if (featurePlayerInvincible)
-	{
-		if (bPlayerExists)
-			PLAYER::SET_PLAYER_INVINCIBLE(player, TRUE);
-	}*/
-
-}
-
 int activeLineIndexMain = 0;
 void process_main_menu()
 {
-	const float lineWidth = 300.0;
-	const int lineCount = 7;
+	const float lineWidth = 500.0;
+	const int lineCount = 6;
 
 	std::string caption = "MP3 BASIC MOD";
 
@@ -222,8 +175,7 @@ void process_main_menu()
 		{"GET WEAPONS", NULL, NULL },
 		{"NO RELOAD", &NoReload, NULL},
 		{"UNLIMITED BULLET TIME", &UnlimitedBulletTime, NULL},
-		{"EXPLOSIVE BULLETS", &ExplosiveBullets, NULL},
-		{"MISC", NULL, NULL}
+		{"EXPLOSIVE BULLETS", &ExplosiveBullets, NULL}
 	};
 
 	DWORD waitTime = 150;
@@ -234,16 +186,15 @@ void process_main_menu()
 		do
 		{
 			// draw menu
-			draw_menu_line(caption, lineWidth, 15.0, 18.0, 0.0, 5.0, false, true);
+			draw_menu_line(caption, lineWidth, 15, 23, 0.0, 5.0, false, true);
 			for (int i = 0; i < lineCount; i++)
 			{
 				if (i != activeLineIndexMain)
 				{
-					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), lineWidth, 9.0, 60.0 + i * 36.0, 0.0, 9.0, false, false);
+					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), lineWidth, 10.0, 60.0 + i * 36.0, 0.0, 9.0, false, false);
 				}
 			}
-			draw_menu_line(line_as_str(lines[activeLineIndexMain].text, lines[activeLineIndexMain].pState), lineWidth + 1.0, 11.0, 56.0 + activeLineIndexMain * 36.0, 0.0, 7.0, true, false);
-			//update_features();
+			draw_menu_line(line_as_str(lines[activeLineIndexMain].text, lines[activeLineIndexMain].pState), lineWidth, 9.0, 60.0 + activeLineIndexMain * 36.0, 0.0, 9.0, true, false);
 			update_status_text();
 			scriptWait(0);
 		} 
@@ -304,9 +255,6 @@ void process_main_menu()
 				// EXPLOSIVE BULLETS
 				ExplosiveBullets = !ExplosiveBullets;
 				break;
-			case 6:
-				//process_misc_menu();
-				break;
 			default:
 				if (lines[activeLineIndexMain].pState)
 					*lines[activeLineIndexMain].pState = !(*lines[activeLineIndexMain].pState);
@@ -351,7 +299,6 @@ void main()
 		{
 			menu_beep();
 			process_main_menu();
-			//Explode();
 		}
 		// SUPER SPEED
 		if (IsKeyDown(VK_SHIFT) && SuperSpeed)
@@ -363,31 +310,18 @@ void main()
 		// UNLIMITED BULLET TIME
 		if (UnlimitedBulletTime)
 		{
-			PLAYER::SET_ADRENALINE_AMT(9999);
+			PLAYER::SET_ADRENALINE_AMT(100);
 		}
 		// EXPLOSIVE BULLETS
+		Vector3 coords;
 		if (ExplosiveBullets)
 		{
 			Player player = PLAYER::GET_PLAYER_ID();
 			Ped playerPed = PLAYER::GET_PLAYER_PED(player);
-			
-			if (PED::IS_PED_SHOOTING(playerPed))
+			if (WEAPON::GET_PED_LAST_WEAPON_IMPACT_COORD(playerPed, &coords))
 			{
-				Vector3 coords = PED::GET_PED_COORDS(playerPed);
-				
-				//Vector3 coords = WEAPON::impact
 				FIRE::ADD_EXPLOSION(coords.x, coords.y, coords.z, EXP_TAG_GRENADE, 1, 1, 0, 1);
 			}
-			/*if (PED::IS_PED_SHOOTING(playerPed))
-			{
-				Vector3 coords;
-				WEAPON::GET_PED_LAST_WEAPON_IMPACT_COORD(playerPed, &coords);
-				FIRE::ADD_EXPLOSION(coords.x, coords.y, coords.z, EXP_TAG_GRENADE, 1, 1, 0, 1);
-				/*if (WEAPON::GET_PED_LAST_WEAPON_IMPACT_COORD(playerPed, &coords))
-				{
-					FIRE::ADD_EXPLOSION(coords.x, coords.y, coords.z, EXP_TAG_GRENADE, 1, 1, 0, 1);
-				}*
-			}*/
 		}
 		scriptWait(0);
 	}
